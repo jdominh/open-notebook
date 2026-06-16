@@ -2,37 +2,39 @@
 
 Self-hosted [Open Notebook LM](https://github.com/lfnovo/open-notebook) — an open-source NotebookLM alternative with 18+ AI providers and full data ownership.
 
-## Deploy on Railway (one click)
+## Deploy on Railway
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https://github.com/jdominh/open-notebook&envs=OPEN_NOTEBOOK_ENCRYPTION_KEY,OPEN_NOTEBOOK_PASSWORD,SURREAL_URL,SURREAL_USER,SURREAL_PASSWORD,SURREAL_NAMESPACE,SURREAL_DATABASE,CORS_ORIGINS&OPEN_NOTEBOOK_ENCRYPTION_KEYDesc=Secret+key+to+encrypt+stored+API+keys+(openssl+rand+-hex+32)&OPEN_NOTEBOOK_PASSWORDDesc=Password+to+access+the+UI+and+API&SURREAL_URLDefault=ws%3A%2F%2Flocalhost%3A8000%2Frpc&SURREAL_USERDefault=root&SURREAL_PASSWORDDefault=root&SURREAL_NAMESPACEDefault=open_notebook&SURREAL_DATABASEDefault=open_notebook)
+Use the official Railway template, which provisions **two services**: the Open Notebook app **and** a separate SurrealDB database, with networking and env vars auto-wired.
 
-**Required env vars before deploying:**
+👉 **[Deploy the Open Notebook template](https://railway.com/deploy/open-notebook-1)**
+
+### Sourcing the app from this repo
+
+If you want the app service to build from this repo (instead of the official Docker image), point the **app service's** source at `jdominh/open-notebook`. The `Dockerfile` here is a **passthrough** of the official image (`FROM lfnovo/open_notebook:v1-latest`), so it behaves identically to the template's default — it connects to the template's SurrealDB service and serves on port 8502 (which Railway routes to).
+
+> **Do not** bundle SurrealDB into the app image or patch the frontend port. The template runs SurrealDB as its own service; bundling it or moving the frontend port causes connection failures or a 502 at the edge.
+
+**Set these env vars** on the app service (the template pre-fills the `SURREAL_*` ones):
 
 | Variable | Description | Generate |
 |----------|-------------|---------|
 | `OPEN_NOTEBOOK_ENCRYPTION_KEY` | Encrypts stored API keys | `openssl rand -hex 32` |
 | `OPEN_NOTEBOOK_PASSWORD` | UI + API access password | Any strong passphrase |
 
-After deploy, **add persistent volumes** (see below), then open your Railway public URL → **Settings → API Keys** to add your AI provider.
+Confirm `SURREAL_URL` on the app service points at the **SurrealDB service** over the private network (e.g. `ws://${{SurrealDB.RAILWAY_PRIVATE_DOMAIN}}:8000/rpc`) — **not** `localhost`.
+
+After deploy, open your Railway public URL → **Settings → API Keys** to add your AI provider.
 
 ---
 
 ## Persistent Storage (Railway)
 
-By default Railway containers are ephemeral — data is lost on redeploy. Fix this by attaching two volumes to your service:
+The template attaches volumes automatically:
 
-### Step-by-step
+- **SurrealDB service** → volume at `/data` (your database)
+- **App service** → volume at `/app/data` (uploaded files)
 
-1. In your Railway project, click the **open-notebook service**
-2. Go to **Settings → Volumes → Add Volume**
-3. Set **Mount path:** `/app/data`
-4. Railway will redeploy — your data now survives restarts and redeploys
-
-One volume covers everything — both the SurrealDB database (`/app/data/db/`) and uploaded files live under `/app/data`.
-
-**Cost:** ~$0.25/GB/month. A typical personal notebook database stays well under 1GB.
-
-> Do this **before** adding documents. If you add documents first and then attach volumes, the existing data inside the container will not be migrated automatically.
+Both persist across restarts and redeploys. **Cost:** ~$0.25/GB/month; a typical personal notebook stays well under 1GB.
 
 ---
 

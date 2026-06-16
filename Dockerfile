@@ -1,28 +1,13 @@
+# Passthrough of the official Open Notebook image.
+#
+# This repo is the source for the Railway template's APP service
+# (https://railway.com/deploy/open-notebook-1). The template also provisions a
+# SEPARATE SurrealDB service (surrealdb/surrealdb:v2) and auto-wires SURREAL_URL
+# so the app connects to it over Railway's private network.
+#
+# Therefore this image must behave EXACTLY like the official image:
+#   - do NOT bundle SurrealDB (the template provides it)
+#   - do NOT hardcode SURREAL_URL (the template sets it)
+#   - do NOT patch the frontend port (the template routes to the image's 8502;
+#     a custom entrypoint that moves it elsewhere causes a 502 at the edge)
 FROM lfnovo/open_notebook:v1-latest
-
-# Install SurrealDB 2.x (3.x has breaking SQL changes incompatible with base image migrations)
-RUN curl -sSf https://install.surrealdb.com | sh -s -- --version v2.4.1 && \
-    mkdir -p /app/data/db
-
-# Add surrealdb as a supervisord program.
-# The container CMD uses: supervisord -c /etc/supervisor/conf.d/supervisord.conf
-# That file is the REAL main config (not /etc/supervisor/supervisord.conf).
-# It has no [include], so we append one — otherwise surrealdb.conf is never loaded.
-COPY supervisord-surrealdb.conf /etc/supervisor/conf.d/surrealdb.conf
-RUN printf '\n[include]\nfiles = /etc/supervisor/conf.d/surrealdb.conf\n' \
-    >> /etc/supervisor/conf.d/supervisord.conf
-
-# Defaults for all-in-one container (SurrealDB runs on localhost)
-ENV SURREAL_URL=ws://localhost:8000/rpc
-ENV SURREAL_USER=root
-ENV SURREAL_PASSWORD=root
-ENV SURREAL_NAMESPACE=open_notebook
-ENV SURREAL_DATABASE=open_notebook
-
-# entrypoint.sh patches the frontend's hardcoded PORT=8502 to Railway's
-# injected port at runtime before supervisord starts
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-CMD ["/entrypoint.sh"]
-
-EXPOSE 8502 5055
