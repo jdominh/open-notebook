@@ -25,13 +25,10 @@ By default Railway containers are ephemeral — data is lost on redeploy. Fix th
 
 1. In your Railway project, click the **open-notebook service**
 2. Go to **Settings → Volumes → Add Volume**
-3. Add volume 1:
-   - **Mount path:** `/data`
-   - (this is where SurrealDB stores your database)
-4. Add volume 2:
-   - **Mount path:** `/app/data`
-   - (this is where uploaded PDFs, audio, and other files are stored)
-5. Railway will redeploy — your data now survives restarts and redeploys
+3. Set **Mount path:** `/app/data`
+4. Railway will redeploy — your data now survives restarts and redeploys
+
+One volume covers everything — both the SurrealDB database (`/app/data/db/`) and uploaded files live under `/app/data`.
 
 **Cost:** ~$0.25/GB/month. A typical personal notebook database stays well under 1GB.
 

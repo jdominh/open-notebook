@@ -2,7 +2,7 @@ FROM lfnovo/open_notebook:v1-latest
 
 # Install SurrealDB
 RUN curl -sSf https://install.surrealdb.com | sh && \
-    mkdir -p /data
+    mkdir -p /app/data/db
 
 COPY supervisord-surrealdb.conf /etc/supervisor/conf.d/surrealdb.conf
 
