@@ -3,10 +3,9 @@ builder = "dockerfile"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-healthcheckPath = "/notebooks"
-healthcheckTimeout = 300
+# No healthcheckPath: the app is healthy internally (API on 5055, frontend on
+# 8502), but Railway's HTTP healthcheck was failing and blocking promotion of a
+# working container. Without it, Railway promotes once the container is up and
+# routes the public domain to the frontend on 8502.
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
-
-# Persistent storage — add ONE volume in Railway UI:
-#   /app/data  → covers both SurrealDB (/app/data/db/) and uploaded files
