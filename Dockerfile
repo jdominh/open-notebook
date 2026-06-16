@@ -1,7 +1,7 @@
 FROM lfnovo/open_notebook:v1-latest
 
 # Install SurrealDB 2.x (3.x has breaking SQL changes incompatible with base image migrations)
-RUN curl -sSf https://install.surrealdb.com | sh -s -- --version 2.6.5 && \
+RUN curl -sSf https://install.surrealdb.com | sh -s -- --version v2.6.5 && \
     mkdir -p /app/data/db
 
 COPY supervisord-surrealdb.conf /etc/supervisor/conf.d/surrealdb.conf
