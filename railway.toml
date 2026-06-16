@@ -7,3 +7,7 @@ healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
+
+# Persistent storage — add these two volumes in Railway UI:
+#   /data      → SurrealDB database files
+#   /app/data  → uploaded documents (PDFs, audio, etc.)

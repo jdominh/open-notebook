@@ -13,7 +13,29 @@ Self-hosted [Open Notebook LM](https://github.com/lfnovo/open-notebook) — an o
 | `OPEN_NOTEBOOK_ENCRYPTION_KEY` | Encrypts stored API keys | `openssl rand -hex 32` |
 | `OPEN_NOTEBOOK_PASSWORD` | UI + API access password | Any strong passphrase |
 
-After deploy, open your Railway public URL → **Settings → API Keys** to add your AI provider.
+After deploy, **add persistent volumes** (see below), then open your Railway public URL → **Settings → API Keys** to add your AI provider.
+
+---
+
+## Persistent Storage (Railway)
+
+By default Railway containers are ephemeral — data is lost on redeploy. Fix this by attaching two volumes to your service:
+
+### Step-by-step
+
+1. In your Railway project, click the **open-notebook service**
+2. Go to **Settings → Volumes → Add Volume**
+3. Add volume 1:
+   - **Mount path:** `/data`
+   - (this is where SurrealDB stores your database)
+4. Add volume 2:
+   - **Mount path:** `/app/data`
+   - (this is where uploaded PDFs, audio, and other files are stored)
+5. Railway will redeploy — your data now survives restarts and redeploys
+
+**Cost:** ~$0.25/GB/month. A typical personal notebook database stays well under 1GB.
+
+> Do this **before** adding documents. If you add documents first and then attach volumes, the existing data inside the container will not be migrated automatically.
 
 ---
 
